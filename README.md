@@ -4,7 +4,7 @@ Proyecto SMS
 Archivos importantes:
  * Archivos python siguientes:
    * sms.py - módulo para el cargado de datos
-   * SMS_Embeddings.ipynb - archivo de trabajo
+   * SMS_Embeddings.ipynb - archivo de trabajo - LAS INSTRUCCIONES PARA EL TRABAJO SOLICITADO ESTÁN AQUÍ
    * WRD_EMBED_TUT.ipynb - archivo de consulta
  * KRS_weights_best.hdf5 - contiene el modelo KRS almacenado durante las últimas pruebas. Se puede recuperar para comparar su desempeño con algún otro modelo con el que se desee experimentar.
  
