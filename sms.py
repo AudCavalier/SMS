@@ -5,21 +5,6 @@ import numpy as np
 import pandas as pd 
 import matplotlib.pyplot as plt
 
-
-#WEB browsing imports
-from bs4 import BeautifulSoup
-import time
-from progressbar import *
-from selenium import webdriver
-from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-
 #Text Processing imports
 import csv
 import string
@@ -32,117 +17,12 @@ import re
 
 #Absolute paths to files
 # change as required
-op='/home/jorge/Documents/Publicaciones/2018/SMS_SUICIDIO/MODEL_TRAIN_TEST_FILES/'
-anaconda_webdriver='/home/jorge/anaconda3/bin/geckodriver'
-firefox='/usr/bin/firefox'
-datafile='/home/jorge/Documents/Publicaciones/2018/SMS_SUICIDIO/SMS_DATA.csv'
+datafile='./SMS_DATA.csv'
 
 # AUX function for PRE-PROCESSING sentences
 def savetocsv(X, filename):
     data = pd.DataFrame(data=X)
     data.to_csv(filename)
-
-#Open connection to internet
-def open_browser():
-    binary = FirefoxBinary(firefox)
-    caps = DesiredCapabilities.FIREFOX.copy()
-    caps['marionette'] = True
-    #options = webdriver.FirefoxOptions()
-    #options.add_argument("--headless")    #driver in quiet mode (not showing window)
-    #driver = webdriver.Firefox(firefox_binary=binary,capabilities=caps, executable_path='/home/jorge/anaconda3/bin/geckodriver',options=options)
-    driver = webdriver.Firefox(firefox_binary=binary,capabilities=caps, executable_path=anaconda_webdriver)
-    return driver
-
-#LEMATIZADOR GRAMPAL
-def lema_grampal(palabras):
-    lemas=[]                 #dictionary of lemmas (output)
-    driver = open_browser()
-    url_base="http://cartago.lllf.uam.es/grampal/grampal.cgi?m=analiza&csrf=b0ceba683f80b1b40a34214387b75327&e="
-    print(f"Accessing: {url_base}")
-    tic = time.clock()
-    c=0
-    widgets = ['Test: ', Percentage(), ' ', Bar(marker='=',left='[',right=']'),
-               ' ', ETA(), ' ', FileTransferSpeed()] #see docs for other options                 
-    pbar = ProgressBar(widgets=widgets, maxval=len(palabras))
-    pbar.start()
-    total=0
-    for palabra in palabras:
-        url=url_base+palabra
-        driver.get(url)
-        #wait = WebDriverWait(driver, 15).until(EC.title_contains("Analizador morfosintáctico"))
-        time.sleep(.5)
-
-        driver.find_element_by_xpath("//input[@value='Analiza' and @type='submit']").submit()
-        #wait = WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "delPage")))
-        time.sleep(.5)
-        no_html=False
-        try:
-            html = driver.page_source
-        except WebDriverException:
-            print('WebDriverException: No html')
-            no_html=True
-        if not no_html:
-            soup = BeautifulSoup(html, "html.parser")
-            div = soup.find('div',class_='delMain')
-            lema=""
-            for td in div.find_all('td'):
-                if 'lema' in td.text:
-                    lema=unicodedata.normalize('NFKD',td.text).split()[1]
-                    total+=1
-                    break
-            if lema == "":
-                lema=palabra
-            lemas.append(lema.lower())
-        else:
-            lema=None
-            lemas.append(lema)
-        c+=1
-        pbar.update(c)
-    pbar.finish()
-    toc = time.clock()
-    tiempo = toc - tic
-    print(f"Tiempo de ejecución del lematizador: {tiempo}, total de palabras lematizadas: {total}")
-    
-    driver.quit()
-    return np.array(lemas)
-
-#Lematizador GEDIC
-def lema_gedic(palabras):
-    lemas=[]                 #dictionary of lemmas (output)
-    driver = open_browser()
-    url_base="http://www.gedlc.ulpgc.es/investigacion/scogeme02/lematiza.htm"
-    print(f"Accessing: {url_base}")
-
-    tic = time.clock()
-    url=url_base
-    for palabra in palabras:
-        driver.get(url)
-        try:
-            status_code = driver.find_element_by_css_selector("input[type='text']").send_keys(palabra)
-        except:
-            status_code = 0
-        try:
-            status_code = driver.find_element_by_css_selector("input[type='submit']").submit()
-        except:
-            status_code = 1
-        try:
-            wait = WebDriverWait(driver, 15).until(EC.title_contains("Resultados de la lematización"))
-            html=driver.page_source
-        except:
-            status_code = 2
-        soup = BeautifulSoup(html, "html.parser")
-        lemas = soup.find_all('b',text='Forma canónica:')
-        for token in lemas:
-            lema = str(token.next_sibling.text).split()[0]
-            if lema != palabra:
-                lemas.append(lema.lower())
-                break
-    toc = time.clock()
-    tiempo = toc - tic
-    print(f"Tiempo de ejecución del lematizador: {tiempo}")
-    
-    driver.quit()
-    return np.array(lemas)
 
 #Create dicitonary of word lemmas
 def load_lemas(filename='Lemas.txt'):
