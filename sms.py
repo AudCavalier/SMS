@@ -17,6 +17,7 @@ import re
 
 #Absolute paths to files
 # change as required
+op='./MODEL_TRAIN_TEST_FILES/'
 datafile='./SMS_DATA.csv'
 
 # AUX function for PRE-PROCESSING sentences
